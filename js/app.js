@@ -132,7 +132,10 @@ function init() {
         sessions.addMessage({ role: 'assistant', text: '', html, raw: full, debug });
         sim.setHtml(html);
       } else {
-        const reason = describeEmpty(meta);
+        let reason = describeEmpty(meta);
+        if (!reason && full.length === 0) {
+          reason = ' — empty response (the provider may be rate-limiting or overloaded; wait a moment and try again)';
+        }
         sessions.addMessage({
           role: 'assistant',
           text: full || '(no text returned)',
