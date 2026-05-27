@@ -10,9 +10,9 @@ export const PROVIDERS = {
     keyUrl: 'https://console.anthropic.com/settings/keys',
     keyHint: 'Starts with "sk-ant-". Created at console.anthropic.com.',
     note: 'Claude officially supports direct browser calls.',
-    // Anthropic REQUIRES max_tokens. 32000 is well within every current model's
-    // output ceiling (Opus ~128k, Sonnet ~64k) and far beyond any single page.
-    maxOutputTokens: 32000,
+    // Anthropic REQUIRES max_tokens (can't be omitted). 64000 is the output
+    // ceiling for the current models (Sonnet/Haiku 4.5 = 64k, Opus = 128k).
+    maxOutputTokens: 64000,
     models: [
       { id: 'claude-sonnet-4-6', label: 'Claude Sonnet 4.6 — balanced (default)' },
       { id: 'claude-opus-4-7', label: 'Claude Opus 4.7 — best quality' },
@@ -44,10 +44,8 @@ export const PROVIDERS = {
     keyUrl: 'https://aistudio.google.com/apikey',
     keyHint: 'Created at aistudio.google.com/apikey.',
     note: 'Works with a user key directly from the browser.',
-    // Explicit, generous cap. Testing showed gemini-flash-latest returns an
-    // empty stream when maxOutputTokens is omitted or set very high (~65k),
-    // but is reliable at a moderate cap; 32000 is ample for any single page.
-    maxOutputTokens: 32000,
+    // Unset = no output cap; the model uses its full output capacity.
+    maxOutputTokens: null,
     models: [
       { id: 'gemini-flash-latest', label: 'Gemini Flash (latest) — fast (default)' },
       { id: 'gemini-3.5-flash', label: 'Gemini 3.5 Flash' },
