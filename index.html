@@ -1,0 +1,139 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Sketch2Sim — sketch an idea, get a 2D simulation</title>
+    <link rel="stylesheet" href="css/styles.css" />
+    <link
+      rel="icon"
+      href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🧪</text></svg>"
+    />
+  </head>
+  <body>
+    <div class="app">
+      <!-- ================= Chat (left) ================= -->
+      <section class="panel" id="chat-panel">
+        <header class="panel-head">
+          <span class="panel-title">Chat</span>
+          <select id="session-select" class="session-select" title="Session"></select>
+          <button id="new-session" class="icon-btn" title="New session">＋</button>
+          <button id="open-settings" class="icon-btn" title="Settings">⚙</button>
+        </header>
+
+        <div class="messages" id="messages"></div>
+
+        <div class="composer">
+          <div class="chat-error" id="chat-error" hidden></div>
+          <label class="attach-toggle" title="Send the current sketch with your next message">
+            <input type="checkbox" id="attach-sketch" />
+            <span>Attach sketch</span>
+            <img id="attach-thumb" class="attach-thumb" alt="sketch preview" hidden />
+          </label>
+          <div class="composer-row">
+            <textarea
+              id="chat-input"
+              rows="2"
+              placeholder="Describe the simulation (e.g. “a ball bouncing under gravity”), or sketch it and toggle Attach sketch. ⌘/Ctrl+Enter to send."
+            ></textarea>
+            <button id="send-btn" class="btn btn-primary">Send</button>
+          </div>
+        </div>
+      </section>
+
+      <!-- ================= Right column ================= -->
+      <div class="right-col">
+        <!-- Sketch (top right) -->
+        <section class="panel" id="sketch-panel">
+          <header class="panel-head">
+            <span class="panel-title">Sketch</span>
+            <div class="toolbar">
+              <button class="tool-btn" data-tool="pen" title="Pen">✏️</button>
+              <button class="tool-btn" data-tool="line" title="Straight line">／</button>
+              <button class="tool-btn" data-tool="text" title="Text">T</button>
+              <button class="tool-btn" data-tool="eraser" title="Eraser">🧽</button>
+              <span class="sep"></span>
+              <input type="color" id="sketch-color" value="#1f2937" title="Color" />
+              <button class="swatch" data-color="#1f2937" style="background:#1f2937" title="Black"></button>
+              <button class="swatch" data-color="#dc2626" style="background:#dc2626" title="Red"></button>
+              <button class="swatch" data-color="#2563eb" style="background:#2563eb" title="Blue"></button>
+              <button class="swatch" data-color="#16a34a" style="background:#16a34a" title="Green"></button>
+              <span class="sep"></span>
+              <input type="range" id="sketch-width" min="1" max="24" value="3" title="Stroke width" />
+              <span class="sep"></span>
+              <button class="icon-btn" id="sketch-undo" title="Undo">↶</button>
+              <button class="icon-btn" id="sketch-clear" title="Clear">🗑️</button>
+            </div>
+            <button class="icon-btn fs-btn" data-fs="sketch-panel" title="Fullscreen">⛶</button>
+          </header>
+          <div class="canvas-wrap" id="sketch-canvas-wrap">
+            <canvas id="sketch-canvas"></canvas>
+          </div>
+        </section>
+
+        <!-- Simulation (bottom right) -->
+        <section class="panel" id="sim-panel">
+          <header class="panel-head">
+            <span class="panel-title">Simulation</span>
+            <div class="sim-status" id="sim-status" hidden></div>
+            <button class="icon-btn fs-btn" data-fs="sim-panel" title="Fullscreen">⛶</button>
+          </header>
+          <div class="sim-body">
+            <iframe id="sim-frame" sandbox="allow-scripts allow-pointer-lock" title="Simulation" hidden></iframe>
+            <div class="sim-placeholder" id="sim-placeholder">
+              <div>
+                <div class="ph-emoji">🔬</div>
+                Your simulation will appear here.<br />
+                Sketch or describe an idea, then press Send.
+              </div>
+            </div>
+            <div class="sim-error" id="sim-error" hidden>
+              <span id="sim-error-msg"></span>
+              <span class="sim-error-actions">
+                <button id="sim-fix-btn" class="btn btn-small">Ask AI to fix</button>
+                <button id="sim-error-close" class="icon-btn">✕</button>
+              </span>
+            </div>
+          </div>
+        </section>
+      </div>
+    </div>
+
+    <!-- ================= Settings modal ================= -->
+    <div class="modal-backdrop" id="settings-modal" hidden>
+      <div class="modal">
+        <h2>Settings</h2>
+        <label class="field">
+          <span>Provider</span>
+          <select id="set-provider"></select>
+        </label>
+        <p class="hint" id="set-note"></p>
+        <label class="field">
+          <span>Model</span>
+          <select id="set-model"></select>
+        </label>
+        <label class="field">
+          <span>Custom model ID (optional)</span>
+          <input id="set-model-custom" type="text" placeholder="override the model id" autocomplete="off" />
+        </label>
+        <label class="field">
+          <span>API key for <strong id="set-key-provider"></strong></span>
+          <input id="set-key" type="password" placeholder="paste your API key" autocomplete="off" />
+        </label>
+        <p class="hint">
+          <a id="set-key-link" target="_blank" rel="noopener">Get a key →</a>
+          <span id="set-key-hint"></span>
+        </p>
+        <p class="hint subtle">
+          Keys are stored only in your browser's localStorage and sent directly to the provider.
+        </p>
+        <div class="modal-actions">
+          <button id="set-cancel" class="btn">Cancel</button>
+          <button id="set-save" class="btn btn-primary">Save</button>
+        </div>
+      </div>
+    </div>
+
+    <script type="module" src="js/app.js"></script>
+  </body>
+</html>
