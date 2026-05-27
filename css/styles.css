@@ -83,6 +83,24 @@ body {
   margin-left: auto;
 }
 
+/* Sketch header right-side cluster: collapse + fullscreen sit together. */
+#sketch-collapse {
+  margin-left: auto;
+}
+#sketch-panel .fs-btn {
+  margin-left: 4px;
+}
+
+/* Collapsed sketch: the panel shrinks to its header and the simulation
+   expands into the freed row. */
+.right-col.sketch-collapsed {
+  grid-template-rows: auto 1fr;
+}
+.right-col.sketch-collapsed #sketch-panel .toolbar,
+.right-col.sketch-collapsed #sketch-panel .canvas-wrap {
+  display: none;
+}
+
 /* ---------- buttons ---------- */
 .btn {
   background: var(--panel-2);

@@ -23,6 +23,7 @@ export class SketchPad {
     this._sizeToContainer(true);
     this._bindTools();
     this._bindDrawing();
+    this._bindImport();
     this._bindResize();
   }
 
@@ -31,6 +32,9 @@ export class SketchPad {
     const rect = this.wrap.getBoundingClientRect();
     const w = Math.max(1, Math.floor(rect.width));
     const h = Math.max(1, Math.floor(rect.height));
+    // When the panel is collapsed/hidden the wrap has zero area. Resizing the
+    // backing store to 1×1 here would discard the drawing, so skip it.
+    if (!initial && (rect.width < 2 || rect.height < 2)) return;
     if (!initial && this.canvas.width === w && this.canvas.height === h) return;
 
     // Preserve existing drawing across resizes.
@@ -276,6 +280,39 @@ export class SketchPad {
     if (typeof this.onChange === 'function') this.onChange();
   }
 
+  // --- import ---------------------------------------------------------------
+  _bindImport() {
+    const btn = this.root.querySelector('#sketch-import');
+    const input = this.root.querySelector('#sketch-import-input');
+    if (!btn || !input) return;
+    btn.addEventListener('click', () => input.click());
+    input.addEventListener('change', () => {
+      const file = input.files?.[0];
+      input.value = ''; // allow re-importing the same file
+      if (!file) return;
+      const reader = new FileReader();
+      reader.onload = () => this._drawImported(String(reader.result));
+      reader.readAsDataURL(file);
+    });
+  }
+
+  _drawImported(dataURL) {
+    const img = new Image();
+    img.onload = () => {
+      this._pushUndo();
+      const cw = this.canvas.width;
+      const ch = this.canvas.height;
+      // Scale to fit (contain), never upscale, and center.
+      const scale = Math.min(cw / img.width, ch / img.height, 1);
+      const w = img.width * scale;
+      const h = img.height * scale;
+      this.ctx.drawImage(img, (cw - w) / 2, (ch - h) / 2, w, h);
+      this.dirty = true;
+      this._changed();
+    };
+    img.src = dataURL;
+  }
+
   // --- public ---------------------------------------------------------------
   hasContent() {
     return this.dirty;
@@ -283,5 +320,29 @@ export class SketchPad {
 
   export() {
     return this.canvas.toDataURL('image/png');
+  }
+
+  // Restore a session's saved sketch (or clear to blank when none). Does not
+  // fire onChange, so loading a session never re-persists over itself.
+  load(dataURL, done) {
+    this.undoStack = [];
+    const finish = () => {
+      if (typeof done === 'function') done();
+    };
+    if (!dataURL) {
+      this._fillWhite();
+      this.dirty = false;
+      finish();
+      return;
+    }
+    const img = new Image();
+    img.onload = () => {
+      this._fillWhite();
+      this.ctx.drawImage(img, 0, 0);
+      this.dirty = true;
+      finish();
+    };
+    img.onerror = finish;
+    img.src = dataURL;
   }
 }

@@ -30,20 +30,35 @@ function init() {
       sessions.create();
       sim.reset();
       refresh();
+      loadSketch();
     },
     onSelectSession: (id) => {
       sessions.setActive(id);
       refresh();
       loadLatestHtml();
+      loadSketch();
+    },
+    onDeleteSession: () => {
+      const active = sessions.getActive();
+      const name = active?.title || 'this conversation';
+      if (!confirm(`Delete “${name}”? This can't be undone.`)) return;
+      sessions.remove(sessions.getActiveId());
+      sim.reset();
+      refresh();
+      loadLatestHtml();
+      loadSketch();
     },
     onOpenSettings: () => settings.open(),
     onAttachChange: (on) => chat.updateThumb(on ? sketch.export() : null),
     onLoadHtml: (html) => sim.setHtml(html),
   });
 
-  // Keep the attach thumbnail live as the user draws.
+  // Persist the working sketch to the active session, and keep the attach
+  // thumbnail live as the user draws.
   sketch.onChange = () => {
-    if (chat.isAttachOn()) chat.updateThumb(sketch.export());
+    const dataURL = sketch.export();
+    sessions.setSketch(dataURL);
+    if (chat.isAttachOn()) chat.updateThumb(dataURL);
   };
 
   // Runtime error in a generated page -> prefill a fix request in the composer.
@@ -52,6 +67,7 @@ function init() {
   };
 
   wireFullscreen();
+  wireSketchCollapse();
 
   let pending = false;
 
@@ -64,6 +80,12 @@ function init() {
     const html = sessions.latestHtml();
     if (html) sim.setHtml(html);
     else sim.reset();
+  }
+
+  function loadSketch() {
+    sketch.load(sessions.getSketch(), () => {
+      if (chat.isAttachOn()) chat.updateThumb(sketch.export());
+    });
   }
 
   async function handleSend() {
@@ -180,6 +202,7 @@ function init() {
 
   refresh();
   loadLatestHtml();
+  loadSketch();
   if (!storage.getKey(storage.getSettings().provider)) settings.open(true);
 }
 
@@ -200,6 +223,18 @@ function logDebug(debug, raw) {
   } catch {
     /* ignore */
   }
+}
+
+// --- sketch collapse --------------------------------------------------------
+function wireSketchCollapse() {
+  const rightCol = document.querySelector('.right-col');
+  const btn = document.getElementById('sketch-collapse');
+  if (!rightCol || !btn) return;
+  btn.addEventListener('click', () => {
+    const collapsed = rightCol.classList.toggle('sketch-collapsed');
+    btn.textContent = collapsed ? '▸' : '▾';
+    btn.title = collapsed ? 'Expand sketch' : 'Collapse sketch';
+  });
 }
 
 // --- fullscreen -------------------------------------------------------------

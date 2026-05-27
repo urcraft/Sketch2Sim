@@ -31,11 +31,11 @@ export const PROVIDERS = {
     // reject the old `max_tokens` name).
     maxOutputTokens: null,
     models: [
-      { id: 'gpt-4o', label: 'GPT-4o — vision (default)' },
-      { id: 'gpt-4.1', label: 'GPT-4.1' },
-      { id: 'gpt-4o-mini', label: 'GPT-4o mini — fast & cheap' },
+      { id: 'gpt-5.5', label: 'GPT-5.5 — most capable, highest cost' },
+      { id: 'gpt-5.4', label: 'GPT-5.4 — balanced (default)' },
+      { id: 'gpt-5.4-mini', label: 'GPT-5.4 mini — fastest & cheapest' },
     ],
-    defaultModel: 'gpt-4o',
+    defaultModel: 'gpt-5.4',
   },
   gemini: {
     label: 'Google Gemini',
@@ -47,12 +47,11 @@ export const PROVIDERS = {
     // Unset = no output cap; the model uses its full output capacity.
     maxOutputTokens: null,
     models: [
-      { id: 'gemini-flash-latest', label: 'Gemini Flash (latest) — fast (default)' },
-      { id: 'gemini-3.5-flash', label: 'Gemini 3.5 Flash' },
-      { id: 'gemini-2.5-flash', label: 'Gemini 2.5 Flash' },
-      { id: 'gemini-pro-latest', label: 'Gemini Pro (latest) — best quality' },
+      { id: 'gemini-3.1-pro-preview', label: 'Gemini 3.1 Pro (preview) — most capable, highest cost' },
+      { id: 'gemini-3.5-flash', label: 'Gemini 3.5 Flash — balanced (default)' },
+      { id: 'gemini-3.1-flash-lite', label: 'Gemini 3.1 Flash-Lite — fastest & cheapest' },
     ],
-    defaultModel: 'gemini-flash-latest',
+    defaultModel: 'gemini-3.5-flash',
   },
 };
 

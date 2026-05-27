@@ -82,6 +82,19 @@ export function addMessage(msg) {
   return msg;
 }
 
+// The current working sketch for the active session (a PNG data URL or null).
+// Persisted so a conversation's drawing survives session switches and reloads.
+export function setSketch(dataURL) {
+  const s = getActive();
+  if (!s) return;
+  s.sketch = dataURL || null;
+  persist();
+}
+
+export function getSketch(session = getActive()) {
+  return session?.sketch || null;
+}
+
 export function latestHtml(session = getActive()) {
   if (!session) return null;
   for (let i = session.messages.length - 1; i >= 0; i--) {

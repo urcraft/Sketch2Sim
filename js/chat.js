@@ -26,6 +26,7 @@ export class Chat {
     this.attachCheck.addEventListener('change', () => this.h.onAttachChange?.(this.attachCheck.checked));
     this.sessionSel.addEventListener('change', () => this.h.onSelectSession?.(this.sessionSel.value));
     root.querySelector('#new-session').addEventListener('click', () => this.h.onNewSession?.());
+    root.querySelector('#delete-session').addEventListener('click', () => this.h.onDeleteSession?.());
     root.querySelector('#open-settings').addEventListener('click', () => this.h.onOpenSettings?.());
   }
 

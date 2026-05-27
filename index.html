@@ -18,6 +18,7 @@
           <span class="panel-title">Chat</span>
           <select id="session-select" class="session-select" title="Session"></select>
           <button id="new-session" class="icon-btn" title="New session">＋</button>
+          <button id="delete-session" class="icon-btn" title="Delete this conversation">🗑️</button>
           <button id="open-settings" class="icon-btn" title="Settings">⚙</button>
         </header>
 
@@ -61,10 +62,13 @@
               <span class="sep"></span>
               <input type="range" id="sketch-width" min="1" max="24" value="3" title="Stroke width" />
               <span class="sep"></span>
+              <button class="icon-btn" id="sketch-import" title="Import image">🖼️</button>
               <button class="icon-btn" id="sketch-undo" title="Undo">↶</button>
               <button class="icon-btn" id="sketch-clear" title="Clear">🗑️</button>
             </div>
+            <button class="icon-btn" id="sketch-collapse" title="Collapse sketch">▾</button>
             <button class="icon-btn fs-btn" data-fs="sketch-panel" title="Fullscreen">⛶</button>
+            <input type="file" id="sketch-import-input" accept="image/*" hidden />
           </header>
           <div class="canvas-wrap" id="sketch-canvas-wrap">
             <canvas id="sketch-canvas"></canvas>
