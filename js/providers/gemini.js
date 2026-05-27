@@ -45,7 +45,7 @@ export async function* streamMessage({ apiKey, model, system, history, images, s
 
   await ensureOk(res, 'Gemini');
 
-  for await (const { data } of sseEvents(res)) {
+  for await (const { data } of sseEvents(res, meta)) {
     let json;
     try {
       json = JSON.parse(data);

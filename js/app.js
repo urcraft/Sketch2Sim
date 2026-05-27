@@ -104,9 +104,12 @@ function init() {
     let full = '';
 
     try {
-      // Gemini (and others) occasionally return an empty 200 stream when
-      // briefly overloaded; retry once automatically before giving up.
-      for (let attempt = 1; attempt <= 2; attempt++) {
+      // Gemini (and others) intermittently return an empty 200 stream when
+      // briefly overloaded, or finish thinking and emit zero text parts. Retry
+      // a few times with a short backoff before giving up. We don't retry once
+      // any text arrived or the prompt was content-blocked (retrying won't help).
+      const MAX_ATTEMPTS = 4;
+      for (let attempt = 1; attempt <= MAX_ATTEMPTS; attempt++) {
         meta = {};
         full = '';
         for await (const delta of adapter.streamMessage({
@@ -120,9 +123,10 @@ function init() {
           chat.setStreaming(full.length);
           sim.showStreaming(full.length);
         }
-        if (full.length > 0 || meta.blockReason || attempt === 2) break;
-        sim.showLoading('Empty response — retrying…');
+        if (full.length > 0 || meta.blockReason || attempt === MAX_ATTEMPTS) break;
+        sim.showLoading(`Empty response — retrying (${attempt + 1}/${MAX_ATTEMPTS})…`);
         chat.setStreaming(0);
+        await new Promise((r) => setTimeout(r, 400 * attempt));
       }
 
       const html = extractHtml(full);
@@ -132,6 +136,8 @@ function init() {
         finishReason: meta.finishReason || null,
         blockReason: meta.blockReason || null,
         chars: full.length,
+        bytes: meta.sseBytes ?? null,
+        events: meta.sseEvents ?? null,
         attachedSketch: req.images.length > 0,
         usage: meta.usage || null,
       };

@@ -147,6 +147,8 @@ export class Chat {
       const parts = [
         `${dbg.provider || '?'} · ${dbg.model || '?'}`,
         `chars: ${(dbg.chars ?? (m.raw ? m.raw.length : 0)).toLocaleString()}`,
+        dbg.bytes != null ? `bytes: ${dbg.bytes.toLocaleString()}` : null,
+        dbg.events != null ? `events: ${dbg.events}` : null,
         dbg.finishReason ? `finish: ${dbg.finishReason}` : null,
         dbg.blockReason ? `blocked: ${dbg.blockReason}` : null,
         dbg.attachedSketch ? 'sketch attached' : null,

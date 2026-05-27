@@ -10,29 +10,53 @@
 
 // Parse a fetch Response body as Server-Sent Events.
 // Yields { event, data } objects (event may be null for data-only streams).
-export async function* sseEvents(response) {
+// If `meta` is passed, records `sseBytes` (raw bytes read) and `sseEvents`
+// (events yielded) so an empty stream can be diagnosed after the fact: a 200
+// with sseBytes>0 but no usable content is the provider returning nothing,
+// not a parse failure.
+export async function* sseEvents(response, meta) {
   const reader = response.body.getReader();
   const decoder = new TextDecoder();
   let buffer = '';
+  // Event records are separated by a blank line. Gemini frames its stream with
+  // CRLF (`\r\n\r\n`); OpenAI/Anthropic use LF (`\n\n`). Match all variants —
+  // splitting only on `\n\n` silently drops every CRLF-framed event.
+  const SEP = /\r\n\r\n|\n\n|\r\r/;
 
   while (true) {
     const { done, value } = await reader.read();
     if (done) break;
+    if (meta && value) meta.sseBytes = (meta.sseBytes || 0) + value.byteLength;
     buffer += decoder.decode(value, { stream: true });
 
-    let sep;
-    while ((sep = buffer.indexOf('\n\n')) !== -1) {
-      const block = buffer.slice(0, sep);
-      buffer = buffer.slice(sep + 2);
-      let event = null;
-      const dataLines = [];
-      for (const line of block.split('\n')) {
-        if (line.startsWith('event:')) event = line.slice(6).trim();
-        else if (line.startsWith('data:')) dataLines.push(line.slice(5).replace(/^ /, ''));
+    let m;
+    while ((m = SEP.exec(buffer))) {
+      const block = buffer.slice(0, m.index);
+      buffer = buffer.slice(m.index + m[0].length);
+      const evt = parseEventBlock(block);
+      if (evt) {
+        if (meta) meta.sseEvents = (meta.sseEvents || 0) + 1;
+        yield evt;
       }
-      if (dataLines.length) yield { event, data: dataLines.join('\n') };
     }
   }
+  // Flush any final event that wasn't terminated by a trailing blank line.
+  const last = parseEventBlock(buffer);
+  if (last) {
+    if (meta) meta.sseEvents = (meta.sseEvents || 0) + 1;
+    yield last;
+  }
+}
+
+function parseEventBlock(block) {
+  let event = null;
+  const dataLines = [];
+  for (const line of block.split(/\r\n|\r|\n/)) {
+    if (line.startsWith('event:')) event = line.slice(6).trim();
+    else if (line.startsWith('data:')) dataLines.push(line.slice(5).replace(/^ /, ''));
+  }
+  if (!dataLines.length) return null;
+  return { event, data: dataLines.join('\n') };
 }
 
 // Throw a readable error for a non-OK response (reads + parses the error body).

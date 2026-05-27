@@ -51,7 +51,7 @@ export async function* streamMessage({ apiKey, model, system, history, images, s
 
   await ensureOk(res, 'OpenAI');
 
-  for await (const { data } of sseEvents(res)) {
+  for await (const { data } of sseEvents(res, meta)) {
     if (data === '[DONE]') break;
     let json;
     try {
