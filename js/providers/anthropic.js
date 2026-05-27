@@ -25,7 +25,7 @@ function findLastUserIndex(turns) {
   return -1;
 }
 
-export async function* streamMessage({ apiKey, model, system, history, images, signal }) {
+export async function* streamMessage({ apiKey, model, system, history, images, signal, meta = {} }) {
   const res = await fetch(PROVIDERS.anthropic.endpoint, {
     method: 'POST',
     headers: {
@@ -36,7 +36,7 @@ export async function* streamMessage({ apiKey, model, system, history, images, s
     },
     body: JSON.stringify({
       model,
-      max_tokens: MAX_OUTPUT_TOKENS,
+      max_tokens: PROVIDERS.anthropic.maxOutputTokens || MAX_OUTPUT_TOKENS,
       system,
       messages: buildMessages(history, images),
       stream: true,
@@ -56,7 +56,10 @@ export async function* streamMessage({ apiKey, model, system, history, images, s
     }
     if (json.type === 'content_block_delta' && json.delta?.type === 'text_delta') {
       yield json.delta.text;
+    } else if (json.type === 'message_delta' && json.delta?.stop_reason) {
+      meta.finishReason = json.delta.stop_reason;
     } else if (json.type === 'error') {
+      meta.error = json.error?.message;
       throw new Error(json.error?.message || 'Anthropic stream error');
     }
   }

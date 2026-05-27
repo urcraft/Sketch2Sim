@@ -10,6 +10,7 @@ export const PROVIDERS = {
     keyUrl: 'https://console.anthropic.com/settings/keys',
     keyHint: 'Starts with "sk-ant-". Created at console.anthropic.com.',
     note: 'Claude officially supports direct browser calls.',
+    maxOutputTokens: 16000,
     models: [
       { id: 'claude-sonnet-4-6', label: 'Claude Sonnet 4.6 — balanced (default)' },
       { id: 'claude-opus-4-7', label: 'Claude Opus 4.7 — best quality' },
@@ -23,6 +24,7 @@ export const PROVIDERS = {
     keyUrl: 'https://platform.openai.com/api-keys',
     keyHint: 'Starts with "sk-". Created at platform.openai.com.',
     note: 'OpenAI does not officially support browser calls — if you hit a CORS error you may need a proxy.',
+    maxOutputTokens: 16000,
     models: [
       { id: 'gpt-4o', label: 'GPT-4o — vision (default)' },
       { id: 'gpt-4.1', label: 'GPT-4.1' },
@@ -37,6 +39,9 @@ export const PROVIDERS = {
     keyUrl: 'https://aistudio.google.com/apikey',
     keyHint: 'Created at aistudio.google.com/apikey.',
     note: 'Works with a user key directly from the browser.',
+    // Higher: the latest flash models spend part of the output budget on
+    // internal "thinking", so a low cap can yield an empty/truncated reply.
+    maxOutputTokens: 32000,
     models: [
       { id: 'gemini-flash-latest', label: 'Gemini Flash (latest) — fast (default)' },
       { id: 'gemini-3.5-flash', label: 'Gemini 3.5 Flash' },

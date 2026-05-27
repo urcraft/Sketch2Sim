@@ -100,6 +100,7 @@ function init() {
     const req = buildRequest(sessions.getActive(), SYSTEM_PROMPT);
     const adapter = getProvider(cfg.provider);
     const controller = new AbortController();
+    const meta = {};
     let full = '';
 
     try {
@@ -107,6 +108,7 @@ function init() {
         apiKey,
         model: cfg.model,
         signal: controller.signal,
+        meta,
         ...req,
       })) {
         full += delta;
@@ -115,15 +117,39 @@ function init() {
       }
 
       const html = extractHtml(full);
+      const debug = {
+        provider: cfg.provider,
+        model: cfg.model,
+        finishReason: meta.finishReason || null,
+        blockReason: meta.blockReason || null,
+        chars: full.length,
+        attachedSketch: req.images.length > 0,
+        usage: meta.usage || null,
+      };
+      logDebug(debug, full);
+
       if (html) {
-        sessions.addMessage({ role: 'assistant', text: '', html });
+        sessions.addMessage({ role: 'assistant', text: '', html, raw: full, debug });
         sim.setHtml(html);
       } else {
-        sessions.addMessage({ role: 'assistant', text: full || '(empty response)' });
-        sim.showError('The model did not return an HTML document. See the chat for its reply.');
+        const reason = describeEmpty(meta);
+        sessions.addMessage({
+          role: 'assistant',
+          text: full || '(no text returned)',
+          raw: full,
+          debug,
+        });
+        sim.showError(`No HTML document returned${reason}. Open “Debug” on the reply to inspect the raw response.`);
       }
     } catch (err) {
       const msg = err?.message || String(err);
+      logDebug({ provider: cfg.provider, model: cfg.model, error: msg, ...meta }, full);
+      sessions.addMessage({
+        role: 'assistant',
+        text: `Error: ${msg}`,
+        raw: full,
+        debug: { provider: cfg.provider, model: cfg.model, error: msg, chars: full.length, ...meta },
+      });
       chat.showError(msg);
       sim.showError(msg);
     } finally {
@@ -137,6 +163,25 @@ function init() {
   refresh();
   loadLatestHtml();
   if (!storage.getKey(storage.getSettings().provider)) settings.open(true);
+}
+
+// --- debugging --------------------------------------------------------------
+function describeEmpty(meta) {
+  const bits = [];
+  if (meta.blockReason) bits.push(`blocked: ${meta.blockReason}`);
+  if (meta.finishReason) bits.push(`finishReason: ${meta.finishReason}`);
+  return bits.length ? ` (${bits.join(', ')})` : '';
+}
+
+function logDebug(debug, raw) {
+  try {
+    console.groupCollapsed('%cSketch2Sim response', 'color:#818cf8;font-weight:bold');
+    console.log('meta:', debug);
+    console.log('raw response:', raw);
+    console.groupEnd();
+  } catch {
+    /* ignore */
+  }
 }
 
 // --- fullscreen -------------------------------------------------------------

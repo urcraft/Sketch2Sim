@@ -98,7 +98,7 @@ export function persist() {
     ...s,
     messages: s.messages.map((m, i, arr) => {
       if (arr.length - i <= KEEP) return m;
-      const { sketchDataURL, html, ...rest } = m;
+      const { sketchDataURL, html, raw, ...rest } = m;
       return rest;
     }),
   }));

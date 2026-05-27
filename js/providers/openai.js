@@ -29,7 +29,7 @@ function findLastUserIndex(turns) {
   return -1;
 }
 
-export async function* streamMessage({ apiKey, model, system, history, images, signal }) {
+export async function* streamMessage({ apiKey, model, system, history, images, signal, meta = {} }) {
   const res = await fetch(PROVIDERS.openai.endpoint, {
     method: 'POST',
     headers: {
@@ -39,7 +39,7 @@ export async function* streamMessage({ apiKey, model, system, history, images, s
     body: JSON.stringify({
       model,
       messages: buildMessages(system, history, images),
-      max_tokens: MAX_OUTPUT_TOKENS,
+      max_tokens: PROVIDERS.openai.maxOutputTokens || MAX_OUTPUT_TOKENS,
       stream: true,
     }),
     signal,
@@ -55,7 +55,8 @@ export async function* streamMessage({ apiKey, model, system, history, images, s
     } catch {
       continue;
     }
-    const delta = json.choices?.[0]?.delta?.content;
-    if (delta) yield delta;
+    const choice = json.choices?.[0];
+    if (choice?.delta?.content) yield choice.delta.content;
+    if (choice?.finish_reason) meta.finishReason = choice.finish_reason;
   }
 }

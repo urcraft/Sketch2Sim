@@ -22,7 +22,7 @@ function findLastUserIndex(turns) {
   return -1;
 }
 
-export async function* streamMessage({ apiKey, model, system, history, images, signal }) {
+export async function* streamMessage({ apiKey, model, system, history, images, signal, meta = {} }) {
   const url = `${PROVIDERS.gemini.endpoint}/${encodeURIComponent(model)}:streamGenerateContent?alt=sse`;
   const res = await fetch(url, {
     method: 'POST',
@@ -33,7 +33,7 @@ export async function* streamMessage({ apiKey, model, system, history, images, s
     body: JSON.stringify({
       systemInstruction: { parts: [{ text: system }] },
       contents: buildContents(history, images),
-      generationConfig: { maxOutputTokens: MAX_OUTPUT_TOKENS },
+      generationConfig: { maxOutputTokens: PROVIDERS.gemini.maxOutputTokens || MAX_OUTPUT_TOKENS },
     }),
     signal,
   });
@@ -47,9 +47,14 @@ export async function* streamMessage({ apiKey, model, system, history, images, s
     } catch {
       continue;
     }
-    const parts = json.candidates?.[0]?.content?.parts;
+    if (json.promptFeedback?.blockReason) meta.blockReason = json.promptFeedback.blockReason;
+    const cand = json.candidates?.[0];
+    if (cand?.finishReason) meta.finishReason = cand.finishReason;
+    if (json.usageMetadata) meta.usage = json.usageMetadata;
+    const parts = cand?.content?.parts;
     if (Array.isArray(parts)) {
-      for (const p of parts) if (p.text) yield p.text;
+      // Skip "thought" parts — they are internal reasoning, not the answer.
+      for (const p of parts) if (p.text && !p.thought) yield p.text;
     }
   }
 }

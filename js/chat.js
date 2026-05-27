@@ -129,7 +129,44 @@ export class Chat {
       p.textContent = m.text || '(empty response)';
       el.appendChild(p);
     }
+    if (m.debug || m.raw != null) el.appendChild(this._debugPanel(m));
     return el;
+  }
+
+  _debugPanel(m) {
+    const d = document.createElement('details');
+    d.className = 'debug';
+    const sum = document.createElement('summary');
+    sum.textContent = 'Debug';
+    d.appendChild(sum);
+
+    if (m.debug) {
+      const meta = document.createElement('div');
+      meta.className = 'debug-meta';
+      const dbg = m.debug;
+      const parts = [
+        `${dbg.provider || '?'} · ${dbg.model || '?'}`,
+        `chars: ${(dbg.chars ?? (m.raw ? m.raw.length : 0)).toLocaleString()}`,
+        dbg.finishReason ? `finish: ${dbg.finishReason}` : null,
+        dbg.blockReason ? `blocked: ${dbg.blockReason}` : null,
+        dbg.attachedSketch ? 'sketch attached' : null,
+        dbg.error ? `error: ${dbg.error}` : null,
+      ].filter(Boolean);
+      meta.textContent = parts.join('  ·  ');
+      d.appendChild(meta);
+    }
+
+    const pre = document.createElement('pre');
+    pre.className = 'debug-raw';
+    pre.textContent = m.raw && m.raw.length ? m.raw : '(model returned no text)';
+    d.appendChild(pre);
+
+    const copy = document.createElement('button');
+    copy.className = 'btn btn-small';
+    copy.textContent = 'Copy raw';
+    copy.addEventListener('click', () => navigator.clipboard?.writeText(m.raw || ''));
+    d.appendChild(copy);
+    return d;
   }
 
   // --- streaming bubble -----------------------------------------------------

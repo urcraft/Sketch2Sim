@@ -220,21 +220,26 @@ export class SketchPad {
     const existing = this.root.querySelector('.sketch-text-input');
     if (existing) existing.remove();
 
+    const wrapRect = this.wrap.getBoundingClientRect();
     const input = document.createElement('input');
     input.className = 'sketch-text-input';
     input.type = 'text';
     const fontSize = Math.max(14, this.width * 5);
     Object.assign(input.style, {
       position: 'absolute',
-      left: `${e.clientX - this.wrap.getBoundingClientRect().left}px`,
-      top: `${e.clientY - this.wrap.getBoundingClientRect().top}px`,
-      font: `${fontSize}px sans-serif`,
+      left: `${e.clientX - wrapRect.left}px`,
+      top: `${e.clientY - wrapRect.top}px`,
+      fontSize: `${fontSize}px`,
+      fontFamily: 'sans-serif',
       color: this.color,
+      caretColor: this.color,
     });
     this.wrap.appendChild(input);
-    input.focus();
 
+    let done = false;
     const commit = () => {
+      if (done) return;
+      done = true;
       const value = input.value;
       input.remove();
       if (!value) return;
@@ -248,10 +253,23 @@ export class SketchPad {
     };
 
     input.addEventListener('keydown', (ev) => {
-      if (ev.key === 'Enter') commit();
-      else if (ev.key === 'Escape') input.remove();
+      ev.stopPropagation();
+      if (ev.key === 'Enter') {
+        ev.preventDefault();
+        commit();
+      } else if (ev.key === 'Escape') {
+        done = true;
+        input.remove();
+      }
     });
-    input.addEventListener('blur', commit);
+
+    // Focus AFTER the current pointer sequence settles, then start listening for
+    // blur. Focusing synchronously inside pointerdown gets stolen by the pointer
+    // event, which would blur+remove the input before the user can type.
+    setTimeout(() => {
+      input.focus();
+      input.addEventListener('blur', commit);
+    }, 0);
   }
 
   _changed() {
