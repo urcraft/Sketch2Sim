@@ -100,20 +100,29 @@ function init() {
     const req = buildRequest(sessions.getActive(), SYSTEM_PROMPT);
     const adapter = getProvider(cfg.provider);
     const controller = new AbortController();
-    const meta = {};
+    let meta = {};
     let full = '';
 
     try {
-      for await (const delta of adapter.streamMessage({
-        apiKey,
-        model: cfg.model,
-        signal: controller.signal,
-        meta,
-        ...req,
-      })) {
-        full += delta;
-        chat.setStreaming(full.length);
-        sim.showStreaming(full.length);
+      // Gemini (and others) occasionally return an empty 200 stream when
+      // briefly overloaded; retry once automatically before giving up.
+      for (let attempt = 1; attempt <= 2; attempt++) {
+        meta = {};
+        full = '';
+        for await (const delta of adapter.streamMessage({
+          apiKey,
+          model: cfg.model,
+          signal: controller.signal,
+          meta,
+          ...req,
+        })) {
+          full += delta;
+          chat.setStreaming(full.length);
+          sim.showStreaming(full.length);
+        }
+        if (full.length > 0 || meta.blockReason || attempt === 2) break;
+        sim.showLoading('Empty response — retrying…');
+        chat.setStreaming(0);
       }
 
       const html = extractHtml(full);
