@@ -44,10 +44,10 @@ export const PROVIDERS = {
     keyUrl: 'https://aistudio.google.com/apikey',
     keyHint: 'Created at aistudio.google.com/apikey.',
     note: 'Works with a user key directly from the browser.',
-    // Leave unset to omit the cap. The latest flash models spend part of the
-    // output budget on internal "thinking", so a low cap can yield an empty
-    // MAX_TOKENS reply; omitting lets the model use its full output capacity.
-    maxOutputTokens: null,
+    // Explicit, generous cap. Testing showed gemini-flash-latest returns an
+    // empty stream when maxOutputTokens is omitted or set very high (~65k),
+    // but is reliable at a moderate cap; 32000 is ample for any single page.
+    maxOutputTokens: 32000,
     models: [
       { id: 'gemini-flash-latest', label: 'Gemini Flash (latest) — fast (default)' },
       { id: 'gemini-3.5-flash', label: 'Gemini 3.5 Flash' },
