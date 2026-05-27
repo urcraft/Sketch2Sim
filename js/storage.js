@@ -7,6 +7,7 @@ const KEYS = {
   keys: `${NS}.keys`,
   sessions: `${NS}.sessions`,
   activeSessionId: `${NS}.activeSessionId`,
+  seenHelp: `${NS}.seenHelp`,
 };
 
 const SCHEMA_VERSION = '1';
@@ -66,6 +67,22 @@ export function getSessions() {
 }
 export function setSessions(sessions) {
   return writeJSON(KEYS.sessions, sessions);
+}
+
+// --- first-run help flag ---
+export function getSeenHelp() {
+  try {
+    return localStorage.getItem(KEYS.seenHelp) === '1';
+  } catch {
+    return false;
+  }
+}
+export function setSeenHelp(seen) {
+  try {
+    localStorage.setItem(KEYS.seenHelp, seen ? '1' : '0');
+  } catch {
+    /* ignore */
+  }
 }
 
 export function getActiveSessionId() {

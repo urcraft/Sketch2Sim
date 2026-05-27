@@ -19,6 +19,7 @@
           <select id="session-select" class="session-select" title="Session"></select>
           <button id="new-session" class="icon-btn" title="New session">＋</button>
           <button id="delete-session" class="icon-btn" title="Delete this conversation">🗑️</button>
+          <button id="open-help" class="icon-btn" title="How to use this app">?</button>
           <button id="open-settings" class="icon-btn" title="Settings">⚙</button>
         </header>
 
@@ -100,6 +101,58 @@
             </div>
           </div>
         </section>
+      </div>
+    </div>
+
+    <!-- ================= Help / onboarding modal ================= -->
+    <div class="modal-backdrop" id="help-modal" hidden>
+      <div class="modal modal-lg help-modal">
+        <button id="help-x" class="icon-btn help-x" title="Close">✕</button>
+        <h2>Welcome to Sketch2Sim 🧪</h2>
+        <p>
+          Sketch or describe a 2D simulation — physics, math, chemistry, biology — and an AI
+          builds a live, interactive page for it on the spot. Everything runs in your browser;
+          your API key never leaves this device.
+        </p>
+
+        <h3>1 · Add an API key</h3>
+        <p>
+          The app calls an AI provider directly from your browser, so you bring your own key.
+          Pick a provider and grab a key (the free tiers are usually enough to get started):
+        </p>
+        <ul id="help-key-links"></ul>
+        <p>
+          Then open <button id="help-open-settings" class="btn btn-small">Settings ⚙</button>,
+          choose your provider and model, paste the key, and Save. Each model in the dropdown is
+          labelled (most capable / balanced / cheapest) to help you choose.
+        </p>
+
+        <h3>2 · Tips</h3>
+        <ul>
+          <li><strong>Sketch + describe.</strong> Draw your idea in the Sketch panel, tick
+            <em>Attach sketch</em>, and the drawing is sent with your message. Text refines or
+            overrides the sketch.</li>
+          <li><strong>Iterate in the same chat.</strong> Follow-ups like “make gravity adjustable”
+            or “add a velocity arrow” modify the current simulation instead of rebuilding it.</li>
+          <li><strong>Import an image</strong> into the sketch (🖼️) to trace or annotate a diagram.</li>
+          <li><strong>Collapse the sketch</strong> (▾) to give the simulation more room, and use the
+            ⛶ buttons to go fullscreen.</li>
+          <li><strong>Conversations persist</strong> — each keeps its own sketch and history. Switch
+            with the dropdown, start a new one with ＋, or remove one with 🗑️.</li>
+          <li><strong>If a sim errors,</strong> a notice with “Ask AI to fix” appears so you can
+            round-trip the error back to the model.</li>
+        </ul>
+
+        <h3>3 · Try an example</h3>
+        <p class="hint">
+          Click one to open a new chat with the prompt ready to edit. Nothing is sent — tweak the
+          text or add a sketch, then press Send when you’re ready.
+        </p>
+        <div id="help-examples" class="help-examples"></div>
+
+        <div class="modal-actions">
+          <button id="help-got-it" class="btn btn-primary">Got it</button>
+        </div>
       </div>
     </div>
 

@@ -4,6 +4,7 @@ import { Settings } from './settings.js';
 import { SketchPad } from './sketch.js';
 import { SimulationView } from './simulation.js';
 import { Chat } from './chat.js';
+import { Help } from './help.js';
 import { buildRequest } from './context.js';
 import { getProvider } from './providers/index.js';
 import { SYSTEM_PROMPT } from './systemPrompt.js';
@@ -49,8 +50,20 @@ function init() {
       loadSketch();
     },
     onOpenSettings: () => settings.open(),
+    onOpenHelp: () => help.open(),
     onAttachChange: (on) => chat.updateThumb(on ? sketch.export() : null),
     onLoadHtml: (html) => sim.setHtml(html),
+  });
+
+  const help = new Help(document.getElementById('help-modal'), {
+    onOpenSettings: () => settings.open(true),
+    onTryExample: (text) => {
+      sessions.create();
+      sim.reset();
+      refresh();
+      loadSketch();
+      chat.setInput(text); // prefill only — not sent until the user presses Send
+    },
   });
 
   // Persist the working sketch to the active session, and keep the attach
@@ -203,7 +216,15 @@ function init() {
   refresh();
   loadLatestHtml();
   loadSketch();
-  if (!storage.getKey(storage.getSettings().provider)) settings.open(true);
+  // First-time visitors get the help/onboarding window (which explains keys).
+  // Returning visitors who still lack a key for their provider go straight to
+  // Settings as before.
+  if (!storage.getSeenHelp()) {
+    help.open();
+    storage.setSeenHelp(true);
+  } else if (!storage.getKey(storage.getSettings().provider)) {
+    settings.open(true);
+  }
 }
 
 // --- debugging --------------------------------------------------------------
