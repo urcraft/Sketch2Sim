@@ -1,4 +1,4 @@
-import { PROVIDERS, MAX_OUTPUT_TOKENS } from '../config.js';
+import { PROVIDERS } from '../config.js';
 import { sseEvents, ensureOk, splitHistory } from './base.js';
 
 function buildContents(history, images) {
@@ -24,17 +24,22 @@ function findLastUserIndex(turns) {
 
 export async function* streamMessage({ apiKey, model, system, history, images, signal, meta = {} }) {
   const url = `${PROVIDERS.gemini.endpoint}/${encodeURIComponent(model)}:streamGenerateContent?alt=sse`;
+  const body = {
+    systemInstruction: { parts: [{ text: system }] },
+    contents: buildContents(history, images),
+  };
+  // Omitted by default so the model uses its full output capacity.
+  if (PROVIDERS.gemini.maxOutputTokens) {
+    body.generationConfig = { maxOutputTokens: PROVIDERS.gemini.maxOutputTokens };
+  }
+
   const res = await fetch(url, {
     method: 'POST',
     headers: {
       'content-type': 'application/json',
       'x-goog-api-key': apiKey,
     },
-    body: JSON.stringify({
-      systemInstruction: { parts: [{ text: system }] },
-      contents: buildContents(history, images),
-      generationConfig: { maxOutputTokens: PROVIDERS.gemini.maxOutputTokens || MAX_OUTPUT_TOKENS },
-    }),
+    body: JSON.stringify(body),
     signal,
   });
 

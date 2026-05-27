@@ -1,4 +1,4 @@
-import { PROVIDERS, MAX_OUTPUT_TOKENS } from '../config.js';
+import { PROVIDERS } from '../config.js';
 import { sseEvents, ensureOk, splitHistory } from './base.js';
 
 function buildMessages(system, history, images) {
@@ -30,18 +30,22 @@ function findLastUserIndex(turns) {
 }
 
 export async function* streamMessage({ apiKey, model, system, history, images, signal, meta = {} }) {
+  const body = {
+    model,
+    messages: buildMessages(system, history, images),
+    stream: true,
+  };
+  // Newer models reject `max_tokens`; the current name is `max_completion_tokens`.
+  // Omitted by default so the model uses its full output capacity.
+  if (PROVIDERS.openai.maxOutputTokens) body.max_completion_tokens = PROVIDERS.openai.maxOutputTokens;
+
   const res = await fetch(PROVIDERS.openai.endpoint, {
     method: 'POST',
     headers: {
       'content-type': 'application/json',
       Authorization: `Bearer ${apiKey}`,
     },
-    body: JSON.stringify({
-      model,
-      messages: buildMessages(system, history, images),
-      max_tokens: PROVIDERS.openai.maxOutputTokens || MAX_OUTPUT_TOKENS,
-      stream: true,
-    }),
+    body: JSON.stringify(body),
     signal,
   });
 

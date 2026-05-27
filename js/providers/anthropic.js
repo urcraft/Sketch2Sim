@@ -1,4 +1,4 @@
-import { PROVIDERS, MAX_OUTPUT_TOKENS } from '../config.js';
+import { PROVIDERS } from '../config.js';
 import { sseEvents, ensureOk, splitHistory } from './base.js';
 
 function buildMessages(history, images) {
@@ -36,7 +36,7 @@ export async function* streamMessage({ apiKey, model, system, history, images, s
     },
     body: JSON.stringify({
       model,
-      max_tokens: PROVIDERS.anthropic.maxOutputTokens || MAX_OUTPUT_TOKENS,
+      max_tokens: PROVIDERS.anthropic.maxOutputTokens,
       system,
       messages: buildMessages(history, images),
       stream: true,
