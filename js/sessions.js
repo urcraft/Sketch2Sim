@@ -95,6 +95,19 @@ export function getSketch(session = getActive()) {
   return session?.sketch || null;
 }
 
+// Visual style preset id chosen for this conversation. Persists per-session
+// so the model produces consistent visuals across follow-up turns.
+export function setStyle(id) {
+  const s = getActive();
+  if (!s) return;
+  s.style = id || null;
+  persist();
+}
+
+export function getStyle(session = getActive()) {
+  return session?.style || null;
+}
+
 export function latestHtml(session = getActive()) {
   if (!session) return null;
   for (let i = session.messages.length - 1; i >= 0; i--) {

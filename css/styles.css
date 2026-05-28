@@ -272,6 +272,26 @@ body {
   margin-bottom: 8px;
   font-size: 13px;
 }
+.style-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 8px;
+  font-size: 12px;
+  color: var(--muted);
+}
+.style-row select {
+  background: var(--panel-2);
+  color: var(--text);
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  padding: 3px 8px;
+  font: inherit;
+}
+.style-row select:focus {
+  outline: none;
+  border-color: var(--primary);
+}
 .attach-toggle {
   display: flex;
   align-items: center;

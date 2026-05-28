@@ -12,6 +12,7 @@ export class Chat {
     this.attachCheck = root.querySelector('#attach-sketch');
     this.attachThumb = root.querySelector('#attach-thumb');
     this.sessionSel = root.querySelector('#session-select');
+    this.styleSel = root.querySelector('#style-select');
     this.errorEl = root.querySelector('#chat-error');
 
     this.streamEl = null;
@@ -25,6 +26,7 @@ export class Chat {
     });
     this.attachCheck.addEventListener('change', () => this.h.onAttachChange?.(this.attachCheck.checked));
     this.sessionSel.addEventListener('change', () => this.h.onSelectSession?.(this.sessionSel.value));
+    this.styleSel.addEventListener('change', () => this.h.onStyleChange?.(this.styleSel.value));
     root.querySelector('#new-session').addEventListener('click', () => this.h.onNewSession?.());
     root.querySelector('#delete-session').addEventListener('click', () => this.h.onDeleteSession?.());
     root.querySelector('#open-help').addEventListener('click', () => this.h.onOpenHelp?.());
@@ -78,6 +80,25 @@ export class Chat {
       if (s.id === activeId) opt.selected = true;
       this.sessionSel.appendChild(opt);
     }
+  }
+
+  // --- style preset --------------------------------------------------------
+  renderStyles(styles, activeId) {
+    this.styleSel.innerHTML = '';
+    for (const s of styles) {
+      const opt = document.createElement('option');
+      opt.value = s.id;
+      opt.textContent = s.label;
+      if (s.id === activeId) opt.selected = true;
+      this.styleSel.appendChild(opt);
+    }
+  }
+  setStyle(id) {
+    const has = [...this.styleSel.options].some((o) => o.value === id);
+    this.styleSel.value = has ? id : 'default';
+  }
+  getStyle() {
+    return this.styleSel.value;
   }
 
   // --- messages -------------------------------------------------------------
@@ -148,6 +169,7 @@ export class Chat {
       const dbg = m.debug;
       const parts = [
         `${dbg.provider || '?'} · ${dbg.model || '?'}`,
+        dbg.style && dbg.style !== 'default' ? `style: ${dbg.style}` : null,
         `chars: ${(dbg.chars ?? (m.raw ? m.raw.length : 0)).toLocaleString()}`,
         dbg.bytes != null ? `bytes: ${dbg.bytes.toLocaleString()}` : null,
         dbg.events != null ? `events: ${dbg.events}` : null,

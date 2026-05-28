@@ -7,8 +7,9 @@ import { Chat } from './chat.js';
 import { Help } from './help.js';
 import { buildRequest } from './context.js';
 import { getProvider } from './providers/index.js';
-import { SYSTEM_PROMPT } from './systemPrompt.js';
+import { SYSTEM_PROMPT, STYLES, DEFAULT_STYLE } from './systemPrompt.js';
 import { extractHtml } from './html-extract.js';
+import { postProcess } from './post-process.js';
 import { PROVIDERS, DEFAULT_PROVIDER } from './config.js';
 
 function init() {
@@ -38,6 +39,7 @@ function init() {
       refresh();
       loadLatestHtml();
       loadSketch();
+      loadStyle();
     },
     onDeleteSession: () => {
       const active = sessions.getActive();
@@ -48,12 +50,16 @@ function init() {
       refresh();
       loadLatestHtml();
       loadSketch();
+      loadStyle();
     },
     onOpenSettings: () => settings.open(),
     onOpenHelp: () => help.open(),
     onAttachChange: (on) => chat.updateThumb(on ? sketch.export() : null),
+    onStyleChange: (id) => sessions.setStyle(id),
     onLoadHtml: (html) => sim.setHtml(html),
   });
+
+  chat.renderStyles(STYLES, sessions.getStyle() || DEFAULT_STYLE);
 
   const help = new Help(document.getElementById('help-modal'), {
     onOpenSettings: () => settings.open(true),
@@ -101,6 +107,10 @@ function init() {
     });
   }
 
+  function loadStyle() {
+    chat.setStyle(sessions.getStyle() || DEFAULT_STYLE);
+  }
+
   async function handleSend() {
     if (pending) return;
     chat.clearError();
@@ -132,7 +142,10 @@ function init() {
     chat.setSending(true);
     sim.showLoading('Generating simulation…');
 
-    const req = buildRequest(sessions.getActive(), SYSTEM_PROMPT);
+    const styleId = sessions.getStyle() || DEFAULT_STYLE;
+    const stylePrompt = STYLES.find((s) => s.id === styleId)?.prompt || '';
+    const systemPrompt = stylePrompt ? `${SYSTEM_PROMPT}\n\n${stylePrompt}` : SYSTEM_PROMPT;
+    const req = buildRequest(sessions.getActive(), systemPrompt);
     const adapter = getProvider(cfg.provider);
     const controller = new AbortController();
     let meta = {};
@@ -164,10 +177,11 @@ function init() {
         await new Promise((r) => setTimeout(r, 400 * attempt));
       }
 
-      const html = extractHtml(full);
+      const html = postProcess(extractHtml(full));
       const debug = {
         provider: cfg.provider,
         model: cfg.model,
+        style: styleId,
         finishReason: meta.finishReason || null,
         blockReason: meta.blockReason || null,
         chars: full.length,
