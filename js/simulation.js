@@ -19,6 +19,9 @@ export class SimulationView {
     this.iframe = root.querySelector('#sim-frame');
     this.status = root.querySelector('#sim-status');
     this.placeholder = root.querySelector('#sim-placeholder');
+    this.loading = root.querySelector('#sim-loading');
+    this.loadingText = root.querySelector('#sim-loading-text');
+    this.loadingSub = root.querySelector('#sim-loading-sub');
     this.errorBox = root.querySelector('#sim-error');
     this.errorMsg = root.querySelector('#sim-error-msg');
     this.lastError = '';
@@ -39,18 +42,34 @@ export class SimulationView {
   }
 
   showLoading(text) {
-    this.status.textContent = text || 'Generating…';
+    const label = text || 'Generating…';
+    this.status.textContent = label;
     this.status.hidden = false;
+    this._showOverlay(label, '');
   }
 
   showStreaming(chars) {
     this.status.textContent = `Generating… ${chars.toLocaleString()} characters`;
     this.status.hidden = false;
+    this._showOverlay('Generating simulation…', `${chars.toLocaleString()} characters written`);
+  }
+
+  // The full-panel loader covers the placeholder/iframe while the model streams.
+  _showOverlay(text, sub) {
+    if (!this.loading) return;
+    if (this.loadingText) this.loadingText.textContent = text;
+    if (this.loadingSub) this.loadingSub.textContent = sub || '';
+    this.placeholder.hidden = true;
+    this.loading.hidden = false;
+  }
+  _hideOverlay() {
+    if (this.loading) this.loading.hidden = true;
   }
 
   setHtml(html) {
     this.clearError();
     this.status.hidden = true;
+    this._hideOverlay();
     this.placeholder.hidden = true;
     this.iframe.hidden = false;
     this.iframe.srcdoc = injectBootstrap(html);
@@ -60,6 +79,7 @@ export class SimulationView {
     this.iframe.srcdoc = '';
     this.iframe.hidden = true;
     this.status.hidden = true;
+    this._hideOverlay();
     this.placeholder.hidden = false;
     this.clearError();
   }
@@ -67,6 +87,7 @@ export class SimulationView {
   showError(msg) {
     this.lastError = msg;
     this.status.hidden = true;
+    this._hideOverlay();
     this.errorMsg.textContent = msg;
     this.errorBox.hidden = false;
   }

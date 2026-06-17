@@ -202,7 +202,7 @@ export class Chat {
       this.streamEl.className = 'msg msg-ai msg-streaming';
       this.messagesEl.appendChild(this.streamEl);
     }
-    this.streamEl.innerHTML = `<span class="spinner"></span> Building simulation… <span class="muted">${chars.toLocaleString()} chars</span>`;
+    this.streamEl.innerHTML = `<span class="dots" aria-hidden="true"><span></span><span></span><span></span></span> Building simulation… <span class="muted">${chars.toLocaleString()} chars</span>`;
     this._scrollToBottom();
   }
   clearStreaming() {
